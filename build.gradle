@@ -1,0 +1,66 @@
+import org.apache.tools.ant.filters.*
+
+buildscript {
+	ext {
+		springBootVersion = '1.5.4.RELEASE'
+	}
+	repositories {
+		mavenCentral()
+	}
+	dependencies {
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+	}
+}
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'org.springframework.boot'
+
+jar {
+	baseName = 'network-monitor'
+	version = '0.0.1-SNAPSHOT'
+}
+
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+	mavenCentral()
+}
+
+//tag:clean[]
+clean {
+	delete "activemq-data"
+}
+//env:clean[]
+
+dependencies {
+	compile("org.springframework.boot:spring-boot-starter")
+	compile("org.springframework.boot:spring-boot-starter-web")
+	compile("org.springframework.boot:spring-boot-starter-remote-shell")
+	compile("org.springframework.boot:spring-boot-actuator")
+	compile("org.springframework:spring-jms")
+	compile("org.apache.activemq:activemq-broker")
+}
+
+task wrapper(type: Wrapper) {
+	gradleVersion = '2.1'
+}
+
+afterEvaluate {
+	configure(allProcessResourcesTasks()) {
+		filter(ReplaceTokens,
+			tokens: [baseName: project.jar.baseName,
+					version: project.jar.version,
+					gradleVersion: project.gradle.gradleVersion]
+		)
+	}
+}
+
+def allProcessResourcesTasks() {
+	sourceSets*.processResourcesTaskName.collect {
+		tasks[it]
+	}
+}
+
